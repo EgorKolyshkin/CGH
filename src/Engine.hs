@@ -1,20 +1,24 @@
 module Engine where
 
-data Point a = Point a a
+data Point a = Point a a deriving (Show)
+
+data Circle a = Circle a (Point a)
+
+data Line a = Line (Point a) (Point a)
 
 class XY c where
-
 	x :: c a -> a
-
 	y :: c a -> a
 
 class XY c => Vertex c where
-
+	
 	translate :: (Num a) => c a -> c a -> c a
 
 	scale :: (Num a) => a -> c a -> c a
 
 	rotate :: (Floating a) => a -> c a -> c a
+
+	absolute :: (Floating a) => c a -> a
 
 instance XY Point where
 	
@@ -33,3 +37,8 @@ instance Vertex Point where
 					y' = y xy
 					cosA = cos a
 					sinA = sin a
+	
+	absolute (Point x y) = sqrt (x ^ 2 + y ^ 2)
+
+
+
