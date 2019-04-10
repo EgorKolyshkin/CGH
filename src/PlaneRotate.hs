@@ -30,9 +30,20 @@ rotate3DZ alpha (Point3D x y z)
 			= rotate3D alpha (\sinA cosA -> Point3D (x * cosA - y * sinA) (x * sinA + y * cosA) (z))  
 
 
+rotatePlane :: (Double -> Point3D -> Point3D) -> Double -> Plane -> Plane
+rotatePlane rotate angle plane = operatePlane rotated plane where
+								 rotated = rotate angle
+
+
 translatePlane :: Plane -> Point3D -> Plane
-translatePlane (Plane fst snd thd fth) point
- 	= Plane (translate3D fst point) (translate3D snd point) (translate3D thd point) (translate3D fth point)
+translatePlane plane point = operatePlane (translate3D point) plane
+
+
+scalePlane :: Double -> Plane -> Plane
+scalePlane scale plane = operatePlane (scale3D scale) plane
+
+operatePlane :: (Point3D -> Point3D) -> Plane -> Plane
+operatePlane operatePoint (Plane fst snd thd fth) = Plane (operatePoint fst) (operatePoint snd) (operatePoint thd) (operatePoint fth) 
 
 
 selectByOption :: (a -> a -> a) -> (Point3D -> a) -> Plane -> a
