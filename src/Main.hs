@@ -18,9 +18,9 @@ path pointsCount bezier t = toPath $ aggregatePoints $ map (\x -> bezier $ (*) (
 
 lineBezier t = line $ path pointsCount bezierThreeSpline $ mapTime t
 
-points1 = [Point 0.0 0.6, Point 0.5 0.8, Point 0.7 0.8, Point 0.9 0.6]
-points2 = [Point 0.9 0.6, Point 1.0 0.4, Point 0.8 0.2, Point 0.5 0.1]
-points3 = [Point 0.5 0.1, Point 0.3 0.15, Point 0.2 0.2, Point 0.0 0.6]
+points1 = [Point 0.0 0.5, Point 0.1 0.7, Point 0.2 0.7, Point 0.3 0.5]
+points2 = [Point 0.3 0.5, Point 0.4 0.3, Point 0.5 0.3, Point 0.6 0.5]
+points3 = [Point 0.6 0.5, Point 0.7 0.7, Point 0.8 0.7, Point 0.9 0.5]
 
 b'3 = b' 3
 
