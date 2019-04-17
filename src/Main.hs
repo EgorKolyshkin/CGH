@@ -4,37 +4,92 @@ import Graphics.Gloss hiding(Point, scale, translate)
 import Bezier
 import Engine
 import PlaneRotate
+import CutLines
 
 offsetX = -0.5
 offsetY = -0.5
 
-resultPlane t = line $ planeToPath (aggregatedPlane (doWithPlaneInOrigin plane (transformPlane t)))
+width = 600
+height = 600
+scaleWidth = 300
+scaleHeight = 300
 
-transformPlane :: Float -> Plane -> Plane
-transformPlane t plane = rotatePlane rotate3DY (realToFrac (t / 2.0)) $ rotatePlane rotate3DX (realToFrac t) plane
+first (a, b) = a
+second (a, b) = b 
 
-planeToPath (Plane fst snd thd fth) = [toPair fst, toPair snd, toPair thd, toPair fth, toPair fst]
+pointLeftUp = Point3D 0.0 1.0 0.00001
+pointLeftDown = Point3D 0.0 1.0 1.0
 
-toPair (Point3D x y z) = (realToFrac x, realToFrac y)
+pointLeftBotUp = Point3D 0.0 0.0 0.00001
+pointLeftBotDown = Point3D 0.0 0.0 1.0
 
-point1 = Point3D 0.3 0.3 0.1
-point4 = Point3D 0.5 0.3 0.1
-point2 = Point3D 0.3 0.7 0.2
-point3 = Point3D 0.5 0.7 0.2
+pointRightUp = Point3D 1.0 1.0 0.00001
+pointRightDown = Point3D 1.0 1.0 1.0
 
-plane = Plane point1 point2 point3 point4
+pointRightBotUp = Point3D 1.0 0.0 0.00001
+pointRightBotDown = Point3D 1.0 0.0 1.0
+
+leftUpLine = Line3D pointLeftUp pointLeftDown
+leftDownLine = Line3D pointLeftBotUp pointLeftBotDown
+rightUpLine = Line3D pointRightUp pointRightDown
+rightDownLine = Line3D pointRightBotUp pointRightBotDown
+
+perspectiveLines = [leftUpLine, leftDownLine, rightUpLine, rightDownLine]
+
+actualResult t = result startPlane linы t
+
+downRectPath t = [
+	toPair t $ aggregatedPoint pointLeftBotDown,
+	toPair t $ aggregatedPoint pointLeftDown,
+	toPair t $ aggregatedPoint pointRightDown,
+	toPair t $ aggregatedPoint pointRightBotDown,
+	toPair t $ aggregatedPoint pointLeftBotDown]
+
+animatedResult t = 
+		let newT = t * 10.0 in
+	-- Pictures [line $ planeToPath $ aggregatedPlane $ first $ actualResult t]
+		Pictures 
+		([line $ planeToPath newT $ aggregatedPlane $ first $ actualResult newT]
+			++ (map (color $ greyN 0.5) $ map (toLine newT) $ map aggregatedLine3D perspectiveLines)
+			++ map (color $ greyN 0.5) [line $ downRectPath t]
+			++ 	(map (markedLineToPicture newT) $ map aggregatedLine $ second $ actualResult newT))
+
+planeToPath t (Plane fst snd thd fth) = [toPair t fst, toPair t snd, toPair t thd, toPair t fth, toPair t fst]
 
 aggregatedPlane :: Plane -> Plane
-aggregatedPlane plane = scalePlane 600 $ translatePlane plane (Point3D offsetX offsetY 0.0) 
+aggregatedPlane plane = scalePlane scaleWidth $ translatePlane plane (Point3D offsetX offsetY 0.0)
+
+aggregatedLine :: MarkedLine -> MarkedLine
+aggregatedLine (MarkedLine line marked) = MarkedLine (aggregatedLine3D line) marked 
+
+aggregatedLine3D :: Line3D -> Line3D
+aggregatedLine3D (Line3D first second) = Line3D (aggregatedPoint first) (aggregatedPoint second)
+
+aggregatedPoint :: Point3D -> Point3D
+aggregatedPoint point = scale3D scaleWidth $ translate3D point (Point3D offsetX offsetY 0.0)
+
+toPair :: Float -> Point3D -> (Float, Float)
+toPair t point = (realToFrac $ (x / z), realToFrac $ (y / z)) where
+						x = pointX point
+						y = pointY point
+						z = (pointZ point) / 100
+						offsetX = scaleWidth / 2
+						offsetY = 0.0
+
+
+markedLineToPicture :: Float -> MarkedLine -> Picture
+markedLineToPicture t (MarkedLine line Marked) = color red $ toLine t line
+markedLineToPicture t (MarkedLine line Unmarked) =  color green $ toLine t line
+
+toLine :: Float -> Line3D -> Picture
+toLine t (Line3D first second) = line [(toPair t first), (toPair t second)]
 
 
 window :: Display
-window = InWindow "Bezier" (600, 600) (0, 0)
+window = InWindow "Bezier" (width, height) (0, 0)
 
 background :: Color
 background = white
 
 main :: IO ()
-main = animate window background resultPlane
-
-
+main = animate window background animatedResult
