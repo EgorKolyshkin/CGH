@@ -1,15 +1,17 @@
 module Main(main) where
 
-import Graphics.Gloss hiding(Point, scale, translate)
+import Graphics.Gloss hiding(Point, scale)
 import Bezier
-import Engine
 import PlaneRotate
+import ShadowPlane
 
 offsetX = -0.5
 offsetY = -0.5
 
-resultPlane t = let newPlane = (aggregatedPlane (doWithPlaneInOrigin plane (transformPlane (1.2 * t)))) in 
-		 Pictures [color (chooseColor newPlane) $ polygon $ planeToPath newPlane, line $ planeToPath newPlane]
+resultPlane t = let newPlane = (doWithPlaneInOrigin plane (transformPlane (t / 5))) in 
+		 Pictures [color (chooseColor newPlane) $ polygon $ planeToPath $ aggregatedPlane $ newPlane, line $ planeToPath $ aggregatedPlane newPlane,
+		 line $ planeToPath $ aggregatedPlane $ generateShadow 0.0 0.0 0.0 (Point3D 0.5 1.0 0.5) newPlane,
+		 translate 0.0 300.0 $ circle 50  ]
 
 transformPlane :: Float -> Plane -> Plane
 transformPlane t plane = rotatePlane rotate3DY (realToFrac (1.5 * t)) $ rotatePlane rotate3DX (realToFrac (t)) plane
